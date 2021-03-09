@@ -8,17 +8,11 @@ package pgsql
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/mls-361/logger"
-)
-
-const (
-	_poolMaxConns   = 10
-	_connectTimeout = 5 // En secondes
 )
 
 var (
@@ -27,17 +21,6 @@ var (
 )
 
 type (
-	// Config AFAIRE.
-	Config struct {
-		Host     string
-		Port     int
-		Username string
-		Password string
-		Database string
-		MaxConns int
-		Timeout  int
-	}
-
 	// Row AFAIRE.
 	Row interface {
 		Scan(dest ...interface{}) error
@@ -57,34 +40,6 @@ type (
 		pool   *pgxpool.Pool
 	}
 )
-
-// Connect AFAIRE.
-func Connect(cfg *Config, logger logger.Logger) (*Client, error) {
-	if cfg.MaxConns == 0 {
-		cfg.MaxConns = _poolMaxConns
-	}
-
-	if cfg.Timeout == 0 {
-		cfg.Timeout = _connectTimeout
-	}
-
-	uri := fmt.Sprintf(
-		"postgres://%s:%s@%s:%d/%s?pool_max_conns=%d",
-		cfg.Username,
-		cfg.Password,
-		cfg.Host,
-		cfg.Port,
-		cfg.Database,
-		cfg.MaxConns,
-	)
-
-	client := NewClient(logger)
-
-	ctx, cancel := client.ContextWT(time.Duration(cfg.Timeout) * time.Second)
-	defer cancel()
-
-	return client, client.Connect(ctx, uri)
-}
 
 // NewClient AFAIRE.
 func NewClient(logger logger.Logger) *Client {
