@@ -19,7 +19,7 @@ type (
 	}
 )
 
-func (pl *pgxLogger) Log(_ context.Context, level pgx.LogLevel, msg string, ctx map[string]interface{}) {
+func (pgxl *pgxLogger) Log(_ context.Context, level pgx.LogLevel, msg string, ctx map[string]interface{}) {
 	kv := []interface{}{}
 
 	for k, v := range ctx {
@@ -28,15 +28,15 @@ func (pl *pgxLogger) Log(_ context.Context, level pgx.LogLevel, msg string, ctx 
 
 	switch level {
 	case pgx.LogLevelTrace:
-		pl.Trace(msg, kv...)
+		pgxl.Trace(msg, kv...)
 	case pgx.LogLevelDebug:
-		pl.Debug(msg, kv...)
+		pgxl.Debug(msg, kv...)
 	case pgx.LogLevelInfo:
-		pl.Info(msg, kv...)
+		pgxl.Info(msg, kv...)
 	case pgx.LogLevelWarn:
-		pl.Warning(msg, kv...)
+		pgxl.Warning(msg, kv...)
 	case pgx.LogLevelError:
-		pl.Error(msg, kv...)
+		pgxl.Error(msg, kv...)
 	}
 }
 
