@@ -15,7 +15,7 @@ import (
 
 type (
 	pgxLogger struct {
-		*logger.Logger
+		logger.Logger
 	}
 )
 

@@ -42,7 +42,7 @@ type (
 )
 
 // NewClient AFAIRE.
-func NewClient(logger *logger.Logger) *Client {
+func NewClient(logger logger.Logger) *Client {
 	var pgxl *pgxLogger
 
 	if logger != nil {
