@@ -15,7 +15,7 @@ import (
 
 const (
 	_poolMaxConns   = 10
-	_connectTimeout = 5 // En secondes
+	_connectTimeout = 5 * time.Second
 )
 
 type (
@@ -32,7 +32,7 @@ type (
 		Password string
 		Database string
 		MaxConns int
-		Timeout  int
+		Timeout  time.Duration
 	}
 )
 
@@ -69,7 +69,7 @@ func (cfg *Config) Connect(crypto Crypto, logger logger.Logger) (*Client, error)
 
 	client := NewClient(logger)
 
-	ctx, cancel := client.ContextWT(time.Duration(cfg.Timeout) * time.Second)
+	ctx, cancel := client.ContextWT(cfg.Timeout)
 	defer cancel()
 
 	return client, client.Connect(ctx, uri)
