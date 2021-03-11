@@ -19,7 +19,7 @@ const (
 )
 
 type (
-	// Crypt AFAIRE.
+	// Crypto AFAIRE.
 	Crypto interface {
 		DecryptString(text string) (string, error)
 	}
