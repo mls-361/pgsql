@@ -7,15 +7,9 @@
 package pgsql
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/mls-361/logger"
-)
-
-const (
-	_poolMaxConns   = 10
-	_connectTimeout = 5 * time.Second
 )
 
 type (
@@ -26,53 +20,42 @@ type (
 
 	// Config AFAIRE.
 	Config struct {
-		Host     string
-		Port     int
-		Username string
-		Password string
-		Database string
-		MaxConns int
-		Timeout  time.Duration
+		Host              string
+		Port              int32
+		Username          string
+		Password          string
+		Database          string
+		MaxConns          int32
+		MinConns          int32
+		ConnLifeTime      time.Duration
+		ConnIdleTime      time.Duration
+		HealthCheckPeriod time.Duration
+		ConnectTimeout    time.Duration
 	}
 )
 
-// Connect AFAIRE.
-func (cfg *Config) Connect(crypto Crypto, logger logger.Logger) (*Client, error) {
-	password := cfg.Password
-
+// NewClient AFAIRE.
+func (cfg *Config) NewClient(crypto Crypto, logger logger.Logger) (*Client, error) {
 	if crypto != nil {
-		var err error
-
-		password, err = crypto.DecryptString(password)
+		p, err := crypto.DecryptString(cfg.Password)
 		if err != nil {
 			return nil, err
 		}
+
+		cfg.Password = p
 	}
 
-	if cfg.MaxConns == 0 {
-		cfg.MaxConns = _poolMaxConns
+	return newClient(cfg, logger), nil
+}
+
+// Connect AFAIRE.
+func (cfg *Config) Connect(crypto Crypto, logger logger.Logger) (*Client, error) {
+	client, err := cfg.NewClient(crypto, logger)
+	if err != nil {
+		return nil, err
 	}
 
-	if cfg.Timeout == 0 {
-		cfg.Timeout = _connectTimeout
-	}
-
-	uri := fmt.Sprintf(
-		"postgres://%s:%s@%s:%d/%s?pool_max_conns=%d",
-		cfg.Username,
-		password,
-		cfg.Host,
-		cfg.Port,
-		cfg.Database,
-		cfg.MaxConns,
-	)
-
-	client := NewClient(logger)
-
-	ctx, cancel := client.ContextWT(cfg.Timeout)
-	defer cancel()
-
-	return client, client.Connect(ctx, uri)
+	return client, client.Connect()
 }
 
 /*

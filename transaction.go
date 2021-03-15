@@ -10,7 +10,6 @@ import (
 	"context"
 
 	"github.com/jackc/pgx/v4"
-	"github.com/mls-361/failure"
 )
 
 type (
@@ -20,31 +19,6 @@ type (
 		tx  pgx.Tx
 	}
 )
-
-// Transaction AFAIRE.
-func (c *Client) Transaction(ctx context.Context, fn func(*Transaction) error) error {
-	tx, err := c.pool.Begin(ctx)
-	if err != nil {
-		return err
-	}
-
-	t := &Transaction{
-		ctx: ctx,
-		tx:  tx,
-	}
-
-	if err := fn(t); err != nil {
-		if rbErr := tx.Rollback(ctx); rbErr != nil {
-			return failure.New(err).
-				Set("reason", rbErr).
-				Msg("transaction rollback error") //////////////////////////////////////////////////////////////////////
-		}
-
-		return err
-	}
-
-	return tx.Commit(ctx)
-}
 
 // Execute AFAIRE.
 func (t *Transaction) Execute(sql string, args ...interface{}) (int64, error) {
