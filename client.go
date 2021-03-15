@@ -9,6 +9,8 @@ package pgsql
 import (
 	"context"
 	"fmt"
+	"net/url"
+	"strconv"
 	"time"
 
 	"github.com/jackc/pgx/v4"
@@ -80,7 +82,7 @@ func (cl *Client) Pool() *pgxpool.Pool {
 
 // Connect AFAIRE.
 func (cl *Client) Connect() error {
-	uri := fmt.Sprintf(
+	cs := fmt.Sprintf(
 		"postgres://%s:%s@%s:%d/%s",
 		cl.config.Username,
 		cl.config.Password,
@@ -89,16 +91,36 @@ func (cl *Client) Connect() error {
 		cl.config.Database,
 	)
 
-	config, err := pgxpool.ParseConfig(uri)
+	q := url.Values{}
+
+	if cl.config.ConnLifeTime != 0 {
+		q.Add("pool_max_conn_lifetime", cl.config.ConnLifeTime.String())
+	}
+
+	if cl.config.ConnIdleTime != 0 {
+		q.Add("pool_max_conn_idle_time", cl.config.ConnIdleTime.String())
+	}
+
+	if cl.config.MaxConns != 0 {
+		q.Add("pool_max_conns", strconv.Itoa(cl.config.MaxConns))
+	}
+
+	if cl.config.MinConns != 0 {
+		q.Add("pool_min_conns", strconv.Itoa(cl.config.MinConns))
+	}
+
+	if cl.config.HealthCheckPeriod != 0 {
+		q.Add("pool_health_check_period", cl.config.HealthCheckPeriod.String())
+	}
+
+	if query := q.Encode(); query != "" {
+		cs += "?" + query
+	}
+
+	config, err := pgxpool.ParseConfig(cs)
 	if err != nil {
 		return err
 	}
-
-	config.MaxConnLifetime = cl.config.ConnLifeTime
-	config.MaxConnIdleTime = cl.config.ConnIdleTime
-	config.MaxConns = cl.config.MaxConns
-	config.MinConns = cl.config.MinConns
-	config.HealthCheckPeriod = cl.config.HealthCheckPeriod
 
 	if cl.logger != nil {
 		config.ConnConfig.LogLevel = pgx.LogLevelWarn

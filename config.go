@@ -21,12 +21,12 @@ type (
 	// Config AFAIRE.
 	Config struct {
 		Host              string
-		Port              int32
+		Port              int
 		Username          string
 		Password          string
 		Database          string
-		MaxConns          int32
-		MinConns          int32
+		MaxConns          int
+		MinConns          int
 		ConnLifeTime      time.Duration
 		ConnIdleTime      time.Duration
 		HealthCheckPeriod time.Duration
